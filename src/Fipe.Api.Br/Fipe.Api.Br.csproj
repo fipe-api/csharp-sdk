@@ -1,0 +1,33 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <LangVersion>10</LangVersion>
+    <Nullable>enable</Nullable>
+    <RootNamespace>Fipe.Api.Br</RootNamespace>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <PackageId>Fipe.Api.Br</PackageId>
+    <Version>0.1.0</Version>
+    <Authors>Deivid Fortuna</Authors>
+    <Description>Client SDK for the FIPE API — average vehicle prices in the Brazilian market (Tabela FIPE), updated monthly.</Description>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/fipe-api/csharp-sdk</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/fipe-api/csharp-sdk</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageTags>fipe;fipe-api;tabela-fipe;sdk;client;api-client;vehicles;veiculos;carros;prices;precos;brazil;brasil</PackageTags>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="../../README.md" Pack="true" PackagePath="/" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.Text.Json" Version="10.0.10" />
+  </ItemGroup>
+
+</Project>
