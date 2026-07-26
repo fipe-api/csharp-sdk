@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://fipe-api.github.io/csharp-sdk/sitemap.xml

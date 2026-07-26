@@ -1,0 +1,454 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fipe.Api.Br — C# / .NET SDK for the FIPE API (Tabela FIPE)</title>
+<meta name="description" content="Documentation for Fipe.Api.Br, the C#/.NET SDK for the FIPE API. Query Brazilian vehicle prices (Tabela FIPE) with a typed, async client. Targets .NET Standard 2.0. Install from NuGet.">
+<link rel="canonical" href="https://fipe-api.github.io/csharp-sdk/">
+<meta name="robots" content="index, follow">
+
+<meta property="og:type" content="website">
+<meta property="og:title" content="Fipe.Api.Br — C# / .NET SDK for the FIPE API">
+<meta property="og:description" content="A typed, async C# client for the FIPE API (Brazilian vehicle prices). Targets .NET Standard 2.0. Install: dotnet add package Fipe.Api.Br">
+<meta property="og:url" content="https://fipe-api.github.io/csharp-sdk/">
+<meta property="og:site_name" content="Fipe.Api.Br">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Fipe.Api.Br — C# / .NET SDK for the FIPE API">
+<meta name="twitter:description" content="A typed, async C# client for the FIPE API (Brazilian vehicle prices). Install: dotnet add package Fipe.Api.Br">
+
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23512BD4'/%3E%3Ctext x='16' y='22' font-family='Arial,sans-serif' font-size='15' font-weight='bold' fill='white' text-anchor='middle'%3EF%3C/text%3E%3C/svg%3E">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareSourceCode",
+  "name": "Fipe.Api.Br",
+  "description": "C#/.NET SDK for the FIPE API — a typed, async client for Brazilian vehicle prices (Tabela FIPE). Targets .NET Standard 2.0.",
+  "codeRepository": "https://github.com/fipe-api/csharp-sdk",
+  "programmingLanguage": "C#",
+  "runtimePlatform": ".NET Standard 2.0",
+  "license": "https://opensource.org/licenses/MIT",
+  "url": "https://fipe-api.github.io/csharp-sdk/"
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Which .NET versions does Fipe.Api.Br support?",
+      "acceptedAnswer": { "@type": "Answer", "text": "The package targets .NET Standard 2.0, so it works on .NET Core, .NET 5 and later, and .NET Framework 4.6.2 or later." }
+    },
+    {
+      "@type": "Question",
+      "name": "Do I need an API token to use the SDK?",
+      "acceptedAnswer": { "@type": "Answer", "text": "No. The SDK works without a token on the FIPE API free tier, which is rate limited. A subscription token can be passed to the FipeClient constructor to lift the limits." }
+    },
+    {
+      "@type": "Question",
+      "name": "How do I use FipeClient with dependency injection?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Register it with services.AddHttpClient<FipeClient>(), or construct it with an HttpClient obtained from IHttpClientFactory." }
+    },
+    {
+      "@type": "Question",
+      "name": "How does the SDK report errors?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Non-success HTTP responses throw FipeApiException, which carries the status code and response body, plus IsNotFound and IsRateLimited convenience properties for exception filters." }
+    }
+  ]
+}
+</script>
+
+<style>
+:root {
+  --bg: #ffffff;
+  --fg: #1f2328;
+  --muted: #59636e;
+  --border: #d1d9e0;
+  --border-soft: #eaeef2;
+  --accent: #512bd4;
+  --code-bg: #f6f8fa;
+  --header-bg: rgba(255, 255, 255, .92);
+  --k: #cf222e;  /* keyword */
+  --t: #953800;  /* type */
+  --s: #0a3069;  /* string */
+  --c: #59636e;  /* comment */
+  --m: #6639ba;  /* method */
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0d1117;
+    --fg: #e6edf3;
+    --muted: #9198a1;
+    --border: #30363d;
+    --border-soft: #21262d;
+    --accent: #a48aff;
+    --code-bg: #161b22;
+    --header-bg: rgba(13, 17, 23, .92);
+    --k: #ff7b72;
+    --t: #ffa657;
+    --s: #a5d6ff;
+    --c: #8b949e;
+    --m: #d2a8ff;
+  }
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; scroll-padding-top: 70px; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+  background: var(--bg);
+  color: var(--fg);
+  line-height: 1.6;
+  font-size: 16px;
+}
+.wrap { max-width: 860px; margin: 0 auto; padding: 0 24px; }
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+code, pre {
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+}
+p code, li code, td code, h3 code {
+  font-size: .875em;
+  background: var(--code-bg);
+  border: 1px solid var(--border-soft);
+  border-radius: 4px;
+  padding: 1px 5px;
+}
+
+/* header */
+header {
+  position: sticky; top: 0; z-index: 10;
+  background: var(--header-bg);
+  backdrop-filter: blur(6px);
+  border-bottom: 1px solid var(--border);
+}
+.nav { display: flex; align-items: center; justify-content: space-between; height: 56px; }
+.brand { display: flex; align-items: center; gap: 8px; color: var(--fg); font-weight: 600; font-size: 15px; }
+.brand:hover { text-decoration: none; }
+.brand svg { flex-shrink: 0; }
+.nav ul { display: flex; gap: 20px; list-style: none; align-items: center; }
+.nav ul a { color: var(--muted); font-size: 14px; }
+.nav ul a:hover { color: var(--fg); text-decoration: none; }
+@media (max-width: 640px) { .nav ul li.hide-m { display: none; } }
+
+/* hero */
+.hero { padding: 56px 0 8px; }
+h1 { font-size: 32px; line-height: 1.25; letter-spacing: -.02em; margin-bottom: 12px; }
+.hero .lead { font-size: 17px; color: var(--muted); max-width: 62ch; }
+.hero .lead strong { color: var(--fg); font-weight: 600; }
+.badges { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 18px; }
+.badges span {
+  font-size: 12.5px; color: var(--muted);
+  border: 1px solid var(--border); border-radius: 20px; padding: 3px 12px;
+}
+
+/* sections */
+section { padding-top: 44px; }
+h2 {
+  font-size: 22px; letter-spacing: -.01em;
+  padding-bottom: 8px; margin-bottom: 16px;
+  border-bottom: 1px solid var(--border);
+}
+h3 { font-size: 17px; margin: 22px 0 8px; }
+section p { margin-bottom: 12px; max-width: 70ch; }
+section p.note { color: var(--muted); font-size: 14.5px; }
+
+/* code blocks */
+.code {
+  position: relative;
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  margin: 14px 0 20px;
+  overflow: hidden;
+}
+.code pre {
+  padding: 14px 16px;
+  overflow-x: auto;
+  font-size: 13.5px;
+  line-height: 1.6;
+}
+.code button {
+  position: absolute; top: 8px; right: 8px;
+  font-family: inherit; font-size: 12px;
+  color: var(--muted); background: var(--bg);
+  border: 1px solid var(--border); border-radius: 6px;
+  padding: 3px 10px; cursor: pointer;
+  opacity: 0; transition: opacity .12s;
+}
+.code:hover button, .code button:focus { opacity: 1; }
+.code button:hover { color: var(--fg); }
+.k { color: var(--k); }
+.t { color: var(--t); }
+.s { color: var(--s); }
+.c { color: var(--c); }
+.m { color: var(--m); }
+
+/* method table */
+.tbl-scroll { overflow-x: auto; margin: 14px 0 8px; }
+table { width: 100%; border-collapse: collapse; font-size: 14px; }
+th {
+  text-align: left; font-size: 12.5px; font-weight: 600; color: var(--muted);
+  border-bottom: 1px solid var(--border); padding: 6px 10px;
+}
+td { border-bottom: 1px solid var(--border-soft); padding: 8px 10px; vertical-align: top; }
+td code { white-space: nowrap; }
+
+/* FAQ */
+details { border-bottom: 1px solid var(--border-soft); }
+summary {
+  font-weight: 600; font-size: 15.5px;
+  padding: 14px 0; cursor: pointer; list-style: none;
+  display: flex; justify-content: space-between; gap: 16px;
+}
+summary::-webkit-details-marker { display: none; }
+summary::after { content: "+"; color: var(--muted); }
+details[open] summary::after { content: "\2212"; }
+details p { padding-bottom: 14px; color: var(--muted); max-width: 68ch; }
+
+/* footer */
+footer {
+  margin-top: 64px; padding: 28px 0 40px;
+  border-top: 1px solid var(--border);
+  font-size: 13.5px; color: var(--muted);
+}
+footer .links { display: flex; gap: 18px; flex-wrap: wrap; margin-bottom: 10px; }
+</style>
+</head>
+<body>
+
+<header>
+  <nav class="nav wrap" aria-label="Main">
+    <a class="brand" href="#">
+      <svg width="20" height="20" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="6" fill="#512BD4"/><text x="16" y="22" font-family="Arial, sans-serif" font-size="15" font-weight="bold" fill="#fff" text-anchor="middle">F</text></svg>
+      Fipe.Api.Br
+    </a>
+    <ul>
+      <li class="hide-m"><a href="#install">Install</a></li>
+      <li class="hide-m"><a href="#quick-start">Quick start</a></li>
+      <li class="hide-m"><a href="#methods">Methods</a></li>
+      <li class="hide-m"><a href="#faq">FAQ</a></li>
+      <li><a href="https://www.nuget.org/packages/Fipe.Api.Br">NuGet</a></li>
+      <li><a href="https://github.com/fipe-api/csharp-sdk">GitHub</a></li>
+    </ul>
+  </nav>
+</header>
+
+<main class="wrap">
+  <div class="hero">
+    <h1>C# SDK for the FIPE API</h1>
+    <p class="lead">
+      <strong>Fipe.Api.Br</strong> is a typed, async .NET client for querying average
+      vehicle prices in the Brazilian market (Tabela FIPE) — cars, motorcycles and
+      trucks — without writing any HTTP or JSON handling yourself.
+    </p>
+    <div class="badges">
+      <span>.NET Standard 2.0</span>
+      <span>.NET Core / .NET 5+</span>
+      <span>.NET Framework 4.6.2+</span>
+      <span>MIT license</span>
+    </div>
+  </div>
+
+  <section id="install">
+    <h2>Install</h2>
+    <p>Add the package from NuGet:</p>
+    <div class="code">
+      <pre><code>dotnet add package Fipe.Api.Br</code></pre>
+      <button data-copy="dotnet add package Fipe.Api.Br">Copy</button>
+    </div>
+    <p class="note">Or via the Package Manager console: <code>Install-Package Fipe.Api.Br</code></p>
+  </section>
+
+  <section id="quick-start">
+    <h2>Quick start</h2>
+    <p>Create a <code>FipeClient</code> and start querying. No configuration or token
+       is required to get going:</p>
+    <div class="code">
+      <pre><code><span class="k">using</span> Fipe.Api.Br;
+
+<span class="k">var</span> client = <span class="k">new</span> <span class="t">FipeClient</span>();
+
+<span class="k">var</span> brands = <span class="k">await</span> client.<span class="m">GetBrandsAsync</span>(<span class="t">VehicleType</span>.Cars);
+<span class="k">foreach</span> (<span class="k">var</span> brand <span class="k">in</span> brands)
+{
+    <span class="t">Console</span>.<span class="m">WriteLine</span>(<span class="s">$"{brand.Code} {brand.Name}"</span>);
+}</code></pre>
+      <button data-copy-block>Copy</button>
+    </div>
+    <p>Vehicle types are an enum: <code>VehicleType.Cars</code>,
+       <code>VehicleType.Motorcycles</code> and <code>VehicleType.Trucks</code>.</p>
+
+    <h3>Getting a price</h3>
+    <p>Drill down brand → model → year to reach a vehicle's average price:</p>
+    <div class="code">
+      <pre><code><span class="k">var</span> models  = <span class="k">await</span> client.<span class="m">GetModelsAsync</span>(<span class="t">VehicleType</span>.Cars, <span class="s">"59"</span>);
+<span class="k">var</span> years   = <span class="k">await</span> client.<span class="m">GetYearsAsync</span>(<span class="t">VehicleType</span>.Cars, <span class="s">"59"</span>, <span class="s">"5940"</span>);
+<span class="k">var</span> vehicle = <span class="k">await</span> client.<span class="m">GetVehicleAsync</span>(<span class="t">VehicleType</span>.Cars, <span class="s">"59"</span>, <span class="s">"5940"</span>, <span class="s">"2014-3"</span>);
+
+<span class="t">Console</span>.<span class="m">WriteLine</span>(<span class="s">$"{vehicle.Model}: {vehicle.Price}"</span>);</code></pre>
+      <button data-copy-block>Copy</button>
+    </div>
+    <p>If you already know a vehicle's FIPE code, skip the drill-down:</p>
+    <div class="code">
+      <pre><code><span class="k">var</span> vehicle = <span class="k">await</span> client.<span class="m">GetVehicleByFipeCodeAsync</span>(<span class="t">VehicleType</span>.Cars, <span class="s">"005340-6"</span>, <span class="s">"2014-3"</span>);
+<span class="k">var</span> history = <span class="k">await</span> client.<span class="m">GetHistoryByFipeCodeAsync</span>(<span class="t">VehicleType</span>.Cars, <span class="s">"005340-6"</span>, <span class="s">"2014-3"</span>);
+
+<span class="k">foreach</span> (<span class="k">var</span> entry <span class="k">in</span> history.PriceHistory)
+{
+    <span class="t">Console</span>.<span class="m">WriteLine</span>(<span class="s">$"{entry.Month}: {entry.Price}"</span>);
+}</code></pre>
+      <button data-copy-block>Copy</button>
+    </div>
+  </section>
+
+  <section id="configuration">
+    <h2>Configuration</h2>
+
+    <h3>Authentication</h3>
+    <p>The client works without a token on the free tier, which is rate limited.
+       To use a subscription token:</p>
+    <div class="code">
+      <pre><code><span class="k">var</span> client = <span class="k">new</span> <span class="t">FipeClient</span>(subscriptionToken: <span class="s">"your-token"</span>);</code></pre>
+      <button data-copy-block>Copy</button>
+    </div>
+
+    <h3>Dependency injection</h3>
+    <p>In ASP.NET Core or any host using <code>IHttpClientFactory</code>, register the
+       client so the underlying <code>HttpClient</code> is managed for you:</p>
+    <div class="code">
+      <pre><code>services.<span class="m">AddHttpClient</span>&lt;<span class="t">FipeClient</span>&gt;();
+
+<span class="c">// or construct it from a factory-created HttpClient:</span>
+<span class="k">var</span> client = <span class="k">new</span> <span class="t">FipeClient</span>(httpClientFactory.<span class="m">CreateClient</span>(), subscriptionToken: <span class="s">"your-token"</span>);</code></pre>
+      <button data-copy-block>Copy</button>
+    </div>
+
+    <h3>Reference months</h3>
+    <p>Prices are published in monthly reference tables. Every method accepts an
+       optional <code>reference</code> parameter to query a past month:</p>
+    <div class="code">
+      <pre><code><span class="k">var</span> references = <span class="k">await</span> client.<span class="m">GetReferencesAsync</span>(); <span class="c">// e.g. Code "308", Month "abril de 2024"</span>
+
+<span class="k">var</span> brands = <span class="k">await</span> client.<span class="m">GetBrandsAsync</span>(<span class="t">VehicleType</span>.Cars, reference: 308);</code></pre>
+      <button data-copy-block>Copy</button>
+    </div>
+  </section>
+
+  <section id="methods">
+    <h2>Client methods</h2>
+    <p>All methods are async, return typed models, and take an optional
+       <code>reference</code> month and <code>CancellationToken</code>.</p>
+    <div class="tbl-scroll">
+      <table>
+        <thead>
+          <tr><th>Method</th><th>Description</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><code>GetBrandsAsync</code></td><td>All brands for a vehicle type</td></tr>
+          <tr><td><code>GetModelsAsync</code></td><td>Models of a brand</td></tr>
+          <tr><td><code>GetYearsAsync</code></td><td>Years available for a model</td></tr>
+          <tr><td><code>GetVehicleAsync</code></td><td>Average price for a brand / model / year</td></tr>
+          <tr><td><code>GetYearsByBrandAsync</code></td><td>Years with published prices for a brand</td></tr>
+          <tr><td><code>GetModelsByBrandYearAsync</code></td><td>Models of a brand for a given year</td></tr>
+          <tr><td><code>GetYearsByFipeCodeAsync</code></td><td>Years available for a FIPE code</td></tr>
+          <tr><td><code>GetVehicleByFipeCodeAsync</code></td><td>Average price looked up by FIPE code</td></tr>
+          <tr><td><code>GetHistoryByFipeCodeAsync</code></td><td>Month-by-month price history for a FIPE code</td></tr>
+          <tr><td><code>GetReferencesAsync</code></td><td>Available monthly reference tables</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="error-handling">
+    <h2>Error handling</h2>
+    <p>Non-success responses throw <code>FipeApiException</code>, which exposes the
+       HTTP status code and response body. <code>IsNotFound</code> and
+       <code>IsRateLimited</code> make the common cases easy to filter:</p>
+    <div class="code">
+      <pre><code><span class="k">try</span>
+{
+    <span class="k">var</span> vehicle = <span class="k">await</span> client.<span class="m">GetVehicleAsync</span>(<span class="t">VehicleType</span>.Cars, <span class="s">"59"</span>, <span class="s">"5940"</span>, <span class="s">"1900-1"</span>);
+}
+<span class="k">catch</span> (<span class="t">FipeApiException</span> ex) <span class="k">when</span> (ex.IsNotFound)
+{
+    <span class="c">// unknown brand/model/year</span>
+}
+<span class="k">catch</span> (<span class="t">FipeApiException</span> ex) <span class="k">when</span> (ex.IsRateLimited)
+{
+    <span class="c">// back off, or use a subscription token</span>
+}
+<span class="k">catch</span> (<span class="t">FipeApiException</span> ex)
+{
+    <span class="t">Console</span>.<span class="m">WriteLine</span>(<span class="s">$"API returned {(int)ex.StatusCode}: {ex.Body}"</span>);
+}</code></pre>
+      <button data-copy-block>Copy</button>
+    </div>
+  </section>
+
+  <section id="faq">
+    <h2>FAQ</h2>
+    <details>
+      <summary>Which .NET versions are supported?</summary>
+      <p>The package targets .NET Standard 2.0, so it works on .NET Core,
+         .NET 5 and later, and .NET Framework 4.6.2 or later.</p>
+    </details>
+    <details>
+      <summary>Do I need an API token?</summary>
+      <p>No — the SDK works without a token on the free tier, which is rate
+         limited. Pass a subscription token to the <code>FipeClient</code>
+         constructor to lift the limits. Tokens are issued by the
+         <a href="https://fipe.api.br">FIPE API</a>.</p>
+    </details>
+    <details>
+      <summary>Is the client thread-safe?</summary>
+      <p>Yes — <code>FipeClient</code> wraps a single <code>HttpClient</code> and can
+         be registered as a singleton or typed client and shared across requests.</p>
+    </details>
+    <details>
+      <summary>Where does the data come from?</summary>
+      <p>Prices come from the FIPE API, which publishes the Tabela FIPE — average
+         vehicle prices in the Brazilian market from Fundação Instituto de
+         Pesquisas Econômicas, updated monthly.</p>
+    </details>
+    <details>
+      <summary>Is there a runnable example?</summary>
+      <p>Yes — the repository ships an example project:
+         <code>dotnet run --project examples/Fipe.Examples</code> lists brands and
+         prints a live price.</p>
+    </details>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="links">
+      <a href="https://github.com/fipe-api/csharp-sdk">GitHub</a>
+      <a href="https://www.nuget.org/packages/Fipe.Api.Br">NuGet</a>
+      <a href="https://fipe.api.br">FIPE API</a>
+      <a href="https://github.com/fipe-api/csharp-sdk/blob/main/LICENSE">MIT License</a>
+    </div>
+    Fipe.Api.Br is an open-source client for the FIPE API. Price data © Fundação Instituto de Pesquisas Econômicas.
+  </div>
+</footer>
+
+<script>
+function bindCopy(btn, getText) {
+  btn.addEventListener("click", function () {
+    navigator.clipboard.writeText(getText()).then(function () {
+      btn.textContent = "Copied";
+      setTimeout(function () { btn.textContent = "Copy"; }, 1400);
+    });
+  });
+}
+document.querySelectorAll("[data-copy]").forEach(function (btn) {
+  bindCopy(btn, function () { return btn.getAttribute("data-copy"); });
+});
+document.querySelectorAll("[data-copy-block]").forEach(function (btn) {
+  bindCopy(btn, function () { return btn.closest(".code").querySelector("pre").innerText; });
+});
+</script>
+</body>
+</html>
