@@ -11,7 +11,7 @@
 
   <PropertyGroup>
     <PackageId>Fipe.Api.Br</PackageId>
-    <Version>0.1.0</Version>
+    <Version>0.2.0</Version>
     <Authors>Deivid Fortuna</Authors>
     <Description>Client SDK for the FIPE API — average vehicle prices in the Brazilian market (Tabela FIPE), updated monthly.</Description>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
@@ -23,11 +23,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Include="../../README.md" Pack="true" PackagePath="/" />
+    <None Include="../../README.md" Pack="true" PackagePath="/"/>
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="System.Text.Json" Version="11.0.0" />
+    <PackageReference Include="System.Text.Json" Version="11.0.0"/>
   </ItemGroup>
 
 </Project>
