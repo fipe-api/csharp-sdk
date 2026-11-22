@@ -268,6 +268,18 @@ namespace Fipe.Api.Br.Tests
         }
 
         [Fact]
+        public async Task Plate_NullFipePrices_IsEmpty()
+        {
+            var (client, handler) = NewClient();
+            handler.Body = @"{""plate"": ""ABC1234"", ""fipePrices"": null}";
+
+            var vehicle = await client.GetVehicleByPlateAsync("ABC1234");
+
+            Assert.NotNull(vehicle.FipePrices);
+            Assert.Empty(vehicle.FipePrices);
+        }
+
+        [Fact]
         public async Task Plate_EscapesPathSegment()
         {
             var (client, handler) = NewClient();

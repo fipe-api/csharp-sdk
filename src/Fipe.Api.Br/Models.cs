@@ -169,7 +169,13 @@ namespace Fipe.Api.Br
 
         /// <summary>FIPE prices for the models that match the vehicle.</summary>
         [JsonPropertyName("fipePrices")]
-        public IReadOnlyList<PlateFipePrice> FipePrices { get; set; } = new List<PlateFipePrice>();
+        public IReadOnlyList<PlateFipePrice> FipePrices
+        {
+            get => _fipePrices;
+            set => _fipePrices = value ?? new List<PlateFipePrice>();
+        }
+
+        private IReadOnlyList<PlateFipePrice> _fipePrices = new List<PlateFipePrice>();
 
         /// <summary>Monthly plate quota from the response headers.</summary>
         [JsonIgnore]
