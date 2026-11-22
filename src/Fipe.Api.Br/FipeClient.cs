@@ -89,9 +89,31 @@ namespace Fipe.Api.Br
         public Task<Vehicle> GetHistoryByFipeCodeAsync(VehicleType vehicleType, string fipeCode, string yearId, int? reference = null, CancellationToken cancellationToken = default) =>
             GetAsync<Vehicle>($"/{vehicleType.ToPathSegment()}/{Escape(fipeCode)}/years/{Escape(yearId)}/history", reference, cancellationToken);
 
+        /// <summary>
+        /// Returns the vehicle data and FIPE prices for a license plate in the old or Mercosul format
+        /// (e.g. "ABC1234" or "ABC1D23"). Alpha: this endpoint can change. Each call uses the monthly plate quota.
+        /// </summary>
+        public async Task<PlateVehicle> GetVehicleByPlateAsync(string plate, CancellationToken cancellationToken = default)
+        {
+            if (string.IsNullOrWhiteSpace(plate))
+            {
+                throw new ArgumentException("Plate must not be empty.", nameof(plate));
+            }
+
+            var (vehicle, headers) = await SendAsync<PlateVehicle>($"/plates/{Escape(plate.Trim())}", null, cancellationToken).ConfigureAwait(false);
+            vehicle.Quota = PlateQuota.FromHeaders(headers);
+            return vehicle;
+        }
+
         private static string Escape(string segment) => Uri.EscapeDataString(segment);
 
         private async Task<T> GetAsync<T>(string path, int? reference, CancellationToken cancellationToken)
+        {
+            var (result, _) = await SendAsync<T>(path, reference, cancellationToken).ConfigureAwait(false);
+            return result;
+        }
+
+        private async Task<(T Result, HttpResponseHeaders Headers)> SendAsync<T>(string path, int? reference, CancellationToken cancellationToken)
         {
             var url = _baseUrl + path;
             if (reference.HasValue)
@@ -115,8 +137,9 @@ namespace Fipe.Api.Br
                         throw new FipeApiException(response.StatusCode, body.Trim());
                     }
 
-                    return JsonSerializer.Deserialize<T>(body, JsonOptions)
+                    var result = JsonSerializer.Deserialize<T>(body, JsonOptions)
                         ?? throw new FipeApiException(response.StatusCode, "empty response body");
+                    return (result, response.Headers);
                 }
             }
         }
