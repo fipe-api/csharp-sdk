@@ -77,6 +77,22 @@ foreach (var entry in history.PriceHistory)
 }
 ```
 
+Look up by license plate (Alpha, the endpoint can change):
+
+```csharp
+var vehicle = await client.GetVehicleByPlateAsync("ABC1D23"); // GET /plates/ABC1D23
+
+Console.WriteLine($"{vehicle.Brand} {vehicle.Model} {vehicle.Year} ({vehicle.State})");
+foreach (var price in vehicle.FipePrices)
+{
+    Console.WriteLine($"{price.CodeFipe} {price.Model}: {price.Price}");
+}
+
+Console.WriteLine($"Plate quota: {vehicle.Quota.Remaining}/{vehicle.Quota.Limit}");
+```
+
+The plate endpoint has a monthly quota: 5 lookups without a token, 10 successful lookups with a free token, and 500 successful lookups with a paid subscription. `Quota` comes from the `X-Plate-Quota-Limit` and `X-Plate-Quota-Remaining` response headers. When the quota is used up, the API returns 429 and the client throws `FipeApiException` with `IsRateLimited` set to true. The plate endpoint does not accept `reference`.
+
 ### Reference months
 
 Prices are published per monthly reference table. Every endpoint accepts an optional `reference` to query a past table:

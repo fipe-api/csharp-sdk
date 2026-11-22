@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using System.Linq;
+using System.Net.Http.Headers;
 using System.Text.Json.Serialization;
 
 namespace Fipe.Api.Br
@@ -112,5 +114,113 @@ namespace Fipe.Api.Br
         /// <summary>Reference table code, e.g. "308".</summary>
         [JsonPropertyName("reference")]
         public string Reference { get; set; } = "";
+    }
+
+    /// <summary>Vehicle data and FIPE prices for a license plate.</summary>
+    public sealed class PlateVehicle
+    {
+        /// <summary>Normalized plate, e.g. "ABC1234".</summary>
+        [JsonPropertyName("plate")]
+        public string Plate { get; set; } = "";
+
+        /// <summary>Brand name, e.g. "Volkswagen".</summary>
+        [JsonPropertyName("brand")]
+        public string Brand { get; set; } = "";
+
+        /// <summary>Model name, e.g. "SANTANA CG".</summary>
+        [JsonPropertyName("model")]
+        public string Model { get; set; } = "";
+
+        /// <summary>Vehicle year, e.g. "1986".</summary>
+        [JsonPropertyName("year")]
+        public string Year { get; set; } = "";
+
+        /// <summary>Vehicle color, e.g. "Vermelha".</summary>
+        [JsonPropertyName("color")]
+        public string Color { get; set; } = "";
+
+        /// <summary>Fuel, e.g. "Álcool".</summary>
+        [JsonPropertyName("fuel")]
+        public string Fuel { get; set; } = "";
+
+        /// <summary>Engine power, e.g. "94 cv".</summary>
+        [JsonPropertyName("power")]
+        public string Power { get; set; } = "";
+
+        /// <summary>Vehicle segment, e.g. "Auto".</summary>
+        [JsonPropertyName("segment")]
+        public string Segment { get; set; } = "";
+
+        /// <summary>Chassis number with the first characters hidden, e.g. "*****P246344".</summary>
+        [JsonPropertyName("chassis")]
+        public string Chassis { get; set; } = "";
+
+        /// <summary>City of registration, e.g. "LOBATO".</summary>
+        [JsonPropertyName("city")]
+        public string City { get; set; } = "";
+
+        /// <summary>State of registration, e.g. "PR".</summary>
+        [JsonPropertyName("state")]
+        public string State { get; set; } = "";
+
+        /// <summary>True when the vehicle is imported.</summary>
+        [JsonPropertyName("imported")]
+        public bool Imported { get; set; }
+
+        /// <summary>FIPE prices for the models that match the vehicle.</summary>
+        [JsonPropertyName("fipePrices")]
+        public IReadOnlyList<PlateFipePrice> FipePrices { get; set; } = new List<PlateFipePrice>();
+
+        /// <summary>Monthly plate quota from the response headers.</summary>
+        [JsonIgnore]
+        public PlateQuota Quota { get; set; } = new PlateQuota();
+    }
+
+    /// <summary>A FIPE price for one model that matches a plate.</summary>
+    public sealed class PlateFipePrice
+    {
+        /// <summary>FIPE code, e.g. "005102-0".</summary>
+        [JsonPropertyName("codeFipe")]
+        public string CodeFipe { get; set; } = "";
+
+        /// <summary>Model name in the FIPE table, e.g. "Santana CS/CD/CG".</summary>
+        [JsonPropertyName("model")]
+        public string Model { get; set; } = "";
+
+        /// <summary>Price in Brazilian Real, e.g. "R$ 8.848,00".</summary>
+        [JsonPropertyName("price")]
+        public string Price { get; set; } = "";
+    }
+
+    /// <summary>
+    /// Monthly plate quota. A value is null when the API does not send the
+    /// X-Plate-Quota-Limit or X-Plate-Quota-Remaining header.
+    /// </summary>
+    public sealed class PlateQuota
+    {
+        private const string LimitHeader = "X-Plate-Quota-Limit";
+        private const string RemainingHeader = "X-Plate-Quota-Remaining";
+
+        /// <summary>Number of plate lookups allowed this month.</summary>
+        public int? Limit { get; set; }
+
+        /// <summary>Number of plate lookups left this month.</summary>
+        public int? Remaining { get; set; }
+
+        internal static PlateQuota FromHeaders(HttpHeaders headers) => new PlateQuota
+        {
+            Limit = ReadInt(headers, LimitHeader),
+            Remaining = ReadInt(headers, RemainingHeader),
+        };
+
+        private static int? ReadInt(HttpHeaders headers, string name)
+        {
+            if (!headers.TryGetValues(name, out var values))
+            {
+                return null;
+            }
+
+            return int.TryParse(values.FirstOrDefault(), out var value) ? value : (int?)null;
+        }
     }
 }

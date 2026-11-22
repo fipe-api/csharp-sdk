@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Text.Json;
@@ -13,6 +14,7 @@ namespace Fipe.Api.Br.Tests
         public HttpRequestMessage? LastRequest { get; private set; }
         public HttpStatusCode Status { get; set; } = HttpStatusCode.OK;
         public string Body { get; set; } = "[]";
+        public Dictionary<string, string> Headers { get; } = new Dictionary<string, string>();
 
         protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
@@ -21,6 +23,10 @@ namespace Fipe.Api.Br.Tests
             {
                 Content = new StringContent(Body),
             };
+            foreach (var header in Headers)
+            {
+                response.Headers.Add(header.Key, header.Value);
+            }
             return Task.FromResult(response);
         }
     }
@@ -197,6 +203,101 @@ namespace Fipe.Api.Br.Tests
             Assert.Equal("abril de 2024", entry.Month);
             Assert.Equal("R$ 10.000,00", entry.Price);
             Assert.Equal("308", entry.Reference);
+        }
+
+        [Fact]
+        public async Task Plate_BuildsCorrectPathAndDeserializes()
+        {
+            var (client, handler) = NewClient();
+            handler.Body = @"{
+                ""plate"": ""ABC1234"",
+                ""brand"": ""Volkswagen"",
+                ""model"": ""SANTANA CG"",
+                ""year"": ""1986"",
+                ""color"": ""Vermelha"",
+                ""fuel"": ""Álcool"",
+                ""power"": ""94 cv"",
+                ""segment"": ""Auto"",
+                ""chassis"": ""*****P246344"",
+                ""city"": ""LOBATO"",
+                ""state"": ""PR"",
+                ""imported"": true,
+                ""fipePrices"": [{""codeFipe"": ""005102-0"", ""model"": ""Santana CS/CD/CG"", ""price"": ""R$ 8.848,00""}]
+            }";
+
+            var vehicle = await client.GetVehicleByPlateAsync("ABC1234");
+
+            Assert.Equal("/api/v2/plates/ABC1234", handler.LastRequest!.RequestUri!.AbsolutePath);
+            Assert.Equal("", handler.LastRequest.RequestUri.Query);
+            Assert.Equal("ABC1234", vehicle.Plate);
+            Assert.Equal("Volkswagen", vehicle.Brand);
+            Assert.Equal("1986", vehicle.Year);
+            Assert.Equal("*****P246344", vehicle.Chassis);
+            Assert.Equal("PR", vehicle.State);
+            Assert.True(vehicle.Imported);
+            var price = Assert.Single(vehicle.FipePrices);
+            Assert.Equal("005102-0", price.CodeFipe);
+            Assert.Equal("Santana CS/CD/CG", price.Model);
+            Assert.Equal("R$ 8.848,00", price.Price);
+        }
+
+        [Fact]
+        public async Task Plate_ReadsQuotaFromHeaders()
+        {
+            var (client, handler) = NewClient();
+            handler.Body = @"{""plate"": ""ABC1D23""}";
+            handler.Headers["X-Plate-Quota-Limit"] = "500";
+            handler.Headers["X-Plate-Quota-Remaining"] = "499";
+
+            var vehicle = await client.GetVehicleByPlateAsync("ABC1D23");
+
+            Assert.Equal(500, vehicle.Quota.Limit);
+            Assert.Equal(499, vehicle.Quota.Remaining);
+        }
+
+        [Fact]
+        public async Task Plate_QuotaIsNullWhenHeadersAreMissing()
+        {
+            var (client, handler) = NewClient();
+            handler.Body = @"{""plate"": ""ABC1234""}";
+
+            var vehicle = await client.GetVehicleByPlateAsync("ABC1234");
+
+            Assert.Null(vehicle.Quota.Limit);
+            Assert.Null(vehicle.Quota.Remaining);
+        }
+
+        [Fact]
+        public async Task Plate_EscapesPathSegment()
+        {
+            var (client, handler) = NewClient();
+            handler.Body = "{}";
+
+            await client.GetVehicleByPlateAsync(" ABC/123 ");
+
+            Assert.Equal("/api/v2/plates/ABC%2F123", handler.LastRequest!.RequestUri!.AbsolutePath);
+        }
+
+        [Theory]
+        [InlineData("")]
+        [InlineData("   ")]
+        public async Task Plate_EmptyValue_Throws(string plate)
+        {
+            var (client, _) = NewClient();
+
+            await Assert.ThrowsAsync<ArgumentException>(() => client.GetVehicleByPlateAsync(plate));
+        }
+
+        [Fact]
+        public async Task Plate_ErrorStatus_ThrowsFipeApiException()
+        {
+            var (client, handler) = NewClient();
+            handler.Status = (HttpStatusCode)429;
+            handler.Body = "quota exceeded";
+
+            var ex = await Assert.ThrowsAsync<FipeApiException>(() => client.GetVehicleByPlateAsync("ABC1234"));
+
+            Assert.True(ex.IsRateLimited);
         }
 
         [Fact]
